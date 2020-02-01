@@ -152,6 +152,9 @@ class Game(common.game.Game):
         items += [TileBarrel() for _ in range(4)]
 
         random.shuffle(items)
+        random.shuffle(items)
+        random.shuffle(items)
+        random.shuffle(items)
 
         return items
 
