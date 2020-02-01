@@ -4,25 +4,47 @@ let serverdata = {}
 let selectedItem = ''
 let selectedPayload = ''
 let api_url = '/api/'
+let socket = ''
 
+function connect() {
+    if (!!(socket) && socket.readyState !== 3) {
+        return socket
+    }
 
-let s = new WebSocket(`ws://jackal.flas.ga/api/ws`)
+    let ws = new WebSocket('wss://jackal.flas.ga/api/ws');
+    ws.onopen = function () {
+        console.log('Connected')
+    };
 
-s.onopen = function(e) {
-    s.send('{"connect": 1}')
-    s.onmessage = function(e) {
-        let data = JSON.parse(e.data)
+    ws.onmessage = function (event) {
+        let data = JSON.parse(event.data)
         if (data && data.field) {
             serverdata = data
             refresh()
+        } else {
+            console.log('Message from server ', event.data);
         }
-    }
-    s.onclose = function(e) {
-        console.log('Closed')
-    }
+    };
+
+    ws.onclose = function (e) {
+        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e);
+        socket = ''
+        setTimeout(function () {
+            socket = connect();
+        }, 1000)
+    };
+
+    ws.onerror = function (err) {
+        console.error('Socket encountered error: ', err.message, 'Closing socket')
+        ws.close()
+    };
+
+    return ws
 }
 
+
 function getData() {
+    socket = connect()
     fetch(api_url, {
         cache: 'no-cache',
     })
@@ -56,8 +78,8 @@ function sendMoveData(itemId, coord, payloadIds) {
             }
         }
     }
-
-    s.send(JSON.stringify(data))
+    socket = connect()
+    socket.send(JSON.stringify(data))
 }
 
 function refresh() {
@@ -430,7 +452,15 @@ function newTile(row, col, data) {
 
 function init() {
     getData()
-    setInterval(function () { getData() }, 600000);
+    setInterval(function () {
+        getData()
+    }, 60000);
+
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden ) {
+            getData()
+        }
+      });
 }
 
 function toKebabCase(s) {
