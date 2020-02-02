@@ -70,7 +70,11 @@ async def websocket_handler(request):
     await ws.send_json({'action': 'connect', 'name': name})
 
     for w in request.app['websockets'].values():
-        await w.send_json({'action': 'join', 'name': name})
+        try:
+            await w.send_json({'action': 'join', 'name': name})
+        except RuntimeError as e:
+            log.error('Error %s', e)
+            del request.app['websockets'][name]
     request.app['websockets'][name] = ws
 
     while True:
@@ -78,12 +82,14 @@ async def websocket_handler(request):
 
         if msg.type == WSMsgType.text:
             print(request.app['websockets'])
+            result = None
             try:
                 result = processData(request.app['game'], json.loads(msg.data))
+            except Exception as e:
+                log.error('Error: %s, Wrong socket data: %s', e, msg.data)
+            if result is not None:
                 for w in request.app['websockets'].values():
                     await w.send_json(result, dumps=dumps)
-            except:
-                log.error('Wrong socket data: %s', msg.data)
         else:
             break
 

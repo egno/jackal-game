@@ -1,12 +1,15 @@
-
-
 * {
     margin: 0;
     padding: 0;
 }
 
 body {
-    background: #55a7e044;
+    background: #55a7e044;    
+}
+
+.container {
+    height: 100vmin;
+    width: 100vmin;
 }
 
 #selection {
@@ -26,9 +29,8 @@ body {
 }
 
 .field {
-    padding: 20px;
+    padding: 5%;
     font-size: 0;
-    max-width: 600px;
 }
 
 .row {
@@ -55,6 +57,7 @@ body {
     transition: all 0.5s;
     position: absolute;
     bottom: 0;
+    right: 0;
     opacity: 1;
     z-index: 1;
 }

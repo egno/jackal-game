@@ -203,7 +203,7 @@ function moveItemStage1(item, placeRect) {
     let itemRect = item.getBoundingClientRect()
     item.classList.remove('hidden')
     item.style.bottom = `${itemRect.top - placeRect.top}px`
-    item.style.left = `${placeRect.left - itemRect.left}px`
+    item.style.right = `${itemRect.left - placeRect.left}px`
 }
 
 function moveItemStage2(item, place) {

@@ -57,6 +57,8 @@ class Game(common.game.Game):
         place = self.field.places[coord]
         if (not place.opened):
             place.opened = True
+            if not place.tile:
+                return True
             f = place.tile.onOpen(self)
             if (f):
                 f(coord=coord)
