@@ -328,13 +328,30 @@ function repaintItems(places) {
     if (!(places && places.length)) {
         places = Array.from(document.getElementById("field").getElementsByClassName("place"))
     }
-    const wirlPlaces = [
-        [0, 0],
-        [0, 25],
-        [0, 50],
-        [50, 50],
-        [50, 25]
-    ]
+    const wirlPlaces = {
+        "TileWhirl2": [
+            [50, 0],
+            [0, 50]
+        ],
+        "TileWhirl3": [
+            [0, 0],
+            [25, 25],
+            [0, 50]
+        ],
+        "TileWhirl4": [
+            [0, 0],
+            [50, 10],
+            [0, 30],
+            [50, 50]
+        ],
+        "TileWhirl5": [
+            [0, 50],
+            [25, 50],
+            [50, 40],
+            [50, 0],
+            [0, 0]
+        ]
+    }
     for (let place of places) {
         let pirates = Array.from(place.getElementsByClassName('Pirate'))
         if (pirates.length > 0) {
@@ -344,8 +361,8 @@ function repaintItems(places) {
                     for (let i in whirlStep) {
                         let p = whirlStep[i]
                         p.classList.add("whirl")
-                        p.style.right = `${(wirlPlaces[step][0]) + (((whirlStep.length - i - 1) * 10) / whirlStep.length)}%`
-                        p.style.bottom = `${(wirlPlaces[step][1]) + (((whirlStep.length - i - 1) * 2) / whirlStep.length)}%`
+                        p.style.right = `${(wirlPlaces[place.getAttribute("type")][step][0]) + (((whirlStep.length - i - 1) * 10) / whirlStep.length)}%`
+                        p.style.bottom = `${(wirlPlaces[place.getAttribute("type")][step][1]) + (((whirlStep.length - i - 1) * 2) / whirlStep.length)}%`
                     }
                 }
             } else {

@@ -21,8 +21,8 @@ class Place(object):
         if (self.tile):
             if (self.opened):
                 place['tile'] = self.tile
-                if (self.orientation):
-                    place['orientation'] = self.orientation
+                if (self.tile.angle):
+                    place['orientation'] = self.tile.angle
             else:
                 place['tile'] = True
         return place

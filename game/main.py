@@ -48,7 +48,6 @@ class Game(common.game.Game):
         return Place(
             placeType=placeType,
             tile=tile,
-            orientation=random.randint(0, 3),
             opened=False
         )
 
@@ -111,34 +110,42 @@ class Game(common.game.Game):
         self.openPlace(destination)
 
     def nextTile(self):
-        if self.tileCounter >=  len(self.tiles):
-            self.tileCounter = (self.tileCounter + 1) % len(self.tiles)
+        if self.tileCounter >= len(self.tiles):
+            self.tileCounter = (self.tileCounter) % len(self.tiles)
             random.shuffle(self.tiles)
         result = self.tiles[self.tileCounter]
+        self.tileCounter += 1
         return result
 
     def generateTilePack(self):
         items = []
         items += [TileEmpty(random.randint(1, 4)) for _ in range(18)]
 
-        items += [TileArrow([DeltaCoord(1, 0)]) for _ in range(3)]
-        items += [TileArrow([DeltaCoord(1, 1)]) for _ in range(3)]
+        items += [TileArrow([DeltaCoord(1, 0)], angle=random.randint(0, 3))
+                  for _ in range(3)]
+        items += [TileArrow([DeltaCoord(1, 1)], angle=random.randint(0, 3))
+                  for _ in range(3)]
         items += [TileArrow(
-            [DeltaCoord(1, 0), DeltaCoord(-1, 0)]
+            [DeltaCoord(1, 0), DeltaCoord(-1, 0)],
+            angle=random.randint(0, 3)
         ) for _ in range(3)]
         items += [TileArrow(
-            [DeltaCoord(1, 1), DeltaCoord(-1, -1)]
+            [DeltaCoord(1, 1), DeltaCoord(-1, -1)],
+            angle=random.randint(0, 3)
         ) for _ in range(3)]
         items += [TileArrow(
-            [DeltaCoord(1, 1), DeltaCoord(-1, 0), DeltaCoord(0, -1)]
+            [DeltaCoord(1, 1), DeltaCoord(-1, 0), DeltaCoord(0, -1)],
+            angle=random.randint(0, 3)
         ) for _ in range(3)]
         items += [TileArrow(
             [DeltaCoord(1, 0), DeltaCoord(-1, 0),
-             DeltaCoord(0, 1), DeltaCoord(0, -1)]
+             DeltaCoord(0, 1), DeltaCoord(0, -1)],
+            angle=random.randint(0, 3)
         ) for _ in range(3)]
         items += [TileArrow(
             [DeltaCoord(1, 1), DeltaCoord(-1, 1),
-             DeltaCoord(1, -1), DeltaCoord(-1, -1)]
+             DeltaCoord(1, -1), DeltaCoord(-1, -1)],
+            angle=random.randint(0, 3)
         ) for _ in range(3)]
 
         items += [TileHorse() for _ in range(2)]
@@ -164,7 +171,7 @@ class Game(common.game.Game):
 
         items += [TileAirplane() for _ in range(1)]
         items += [TileBalloon() for _ in range(2)]
-        items += [TileCannon() for _ in range(2)]
+        items += [TileCannon(angle=random.randint(0, 3)) for _ in range(2)]
         items += [TileCave() for _ in range(4)]
         items += [TileJungle() for _ in range(3)]
         # items += [TileGrass() for _ in range(2)]
