@@ -111,8 +111,10 @@ class Game(common.game.Game):
         self.openPlace(destination)
 
     def nextTile(self):
+        if self.tileCounter >=  len(self.tiles):
+            self.tileCounter = (self.tileCounter + 1) % len(self.tiles)
+            random.shuffle(self.tiles)
         result = self.tiles[self.tileCounter]
-        self.tileCounter = (self.tileCounter + 1) % len(self.tiles)
         return result
 
     def generateTilePack(self):
