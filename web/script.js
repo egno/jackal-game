@@ -5,13 +5,14 @@ let selectedItem = ''
 let selectedPayload = ''
 let api_url = '/api/'
 let socket = ''
+let game_id = '0'
 
 function connect() {
     if (!!(socket) && socket.readyState !== 3) {
         return socket
     }
 
-    let ws = new WebSocket('wss://jackal.flas.ga/api/ws');
+    let ws = new WebSocket(`wss://jackal.flas.ga/api/ws/${game_id}`);
     ws.onopen = function () {
         console.log('Connected')
     };
@@ -45,7 +46,7 @@ function connect() {
 
 function getData() {
     socket = connect()
-    fetch(api_url, {
+    fetch(`${api_url}/${game_id}`, {
         cache: 'no-cache',
     })
         .then(response => {
@@ -399,6 +400,9 @@ function refreshField(field) {
             let img = getImageName(placeData)
             if (img) {
                 place.childNodes[0].setAttribute("src", img)
+                for (let r = 0; r < 4; r++) {
+                    place.classList.remove(`rotate${r}`)
+                }
                 if (placeData.orientation) {
                     place.classList.add(`rotate${placeData.orientation}`)
                 }
@@ -451,6 +455,11 @@ function newTile(row, col, data) {
 }
 
 function init() {
+    let url = new URL(document.URL)
+    let id = url.searchParams.get('id')
+    if (id) {
+        game_id = id
+    }
     getData()
     setInterval(function () {
         getData()

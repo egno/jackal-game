@@ -5,13 +5,12 @@ import datetime
 import json
 
 import asyncio
-from aiohttp import web, WSCloseCode, WSMsgType
+from aiohttp import web, WSMsgType
 from faker import Faker
 
 import logging
 
 
-GS = {}
 log = logging.getLogger(__name__)
 
 
@@ -50,71 +49,104 @@ def processData(game, data):
     return result
 
 
+def get_game(app, id):
+    game = app['games'].get(id)
+    if game is None:
+        game = GameServer()
+        app['games'][id] = game
+        app['websockets'][id] = {}
+    return game
+
+
 async def http_get_handler(request):
-    return web.json_response(request.app['game'].to_json(), dumps=dumps)
+    id = request.match_info['id']
+    game = get_game(request.app, id)
+    return web.json_response(game.to_json(), dumps=dumps)
 
 
 async def http_post_handler(request):
     data = await request.json()
-    result = processData(request.app['game'], data)
+    id = request.match_info['id']
+    game = get_game(request.app, id)
+    result = processData(game, data)
     return web.json_response(result, dumps=dumps)
 
 
+async def send_to_game(app, id, message):
+    for name in app['websockets'][id]:
+        try:
+            await app['websockets'][id][name].send_json(message, dumps=dumps)
+        except Exception as e:
+            log.error('Error %s', e)
+            del app['websockets'][id][name]
+
+
 async def websocket_handler(request):
-    ws = web.WebSocketResponse()
+    id = request.match_info['id']
+    game = get_game(request.app, id)
+    ws = web.WebSocketResponse(heartbeat=60, autoping=True, receive_timeout=90)
     await ws.prepare(request)
 
     name = Faker().name()
     log.info('%s joined.', name)
 
-    await ws.send_json({'action': 'connect', 'name': name})
+    await send_to_game(request.app, id, {'action': 'connect', 'name': name})
 
-    for w in request.app['websockets'].values():
-        try:
-            await w.send_json({'action': 'join', 'name': name})
-        except RuntimeError as e:
-            log.error('Error %s', e)
-            del request.app['websockets'][name]
-    request.app['websockets'][name] = ws
+    request.app['websockets'][id][name] = ws
 
-    while True:
-        msg = await ws.receive()
+    async for msg in ws:
 
         if msg.type == WSMsgType.text:
-            print(request.app['websockets'])
+            if msg.data == 'restart':
+                game = GameServer()
+                request.app['games'][id] = game
+                await send_to_game(request.app, id, game.to_json())
+                continue
+            if msg.data == 'open':
+                game.game.openAll()
+                await send_to_game(request.app, id, game.to_json())
+                continue
+            if msg.data == 'close':
+                await send_to_game(request.app, id, {"action": "close"})
+                break
+            if msg.data == 'status':
+                await ws.send_json({'id': id, 'websockets': [
+                    s for s in request.app['websockets'][id]
+                ]})
+                continue
             result = None
             try:
-                result = processData(request.app['game'], json.loads(msg.data))
+                result = processData(game, json.loads(msg.data))
             except Exception as e:
                 log.error('Error: %s, Wrong socket data: %s', e, msg.data)
             if result is not None:
-                for w in request.app['websockets'].values():
-                    await w.send_json(result, dumps=dumps)
+                await send_to_game(request.app, id, result)
         else:
-            break
+            continue
 
-    del request.app['websockets'][name]
+    del request.app['websockets'][id][name]
     log.info('%s disconnected.', name)
-    for w in request.app['websockets'].values():
-        await w.send_json({'action': 'disconnect', 'name': name})
+    send_to_game({'action': 'disconnect', 'name': name})
 
     return ws
 
 
 async def shutdown(app):
-    for ws in app['websockets'].values():
-        await ws.close()
-        app['websockets'].clear()
+    for id in app['websockets']:
+        for ws in app['websockets'][id].values():
+            await ws.close()
+            app['websockets'][id].clear()
+    app['websockets'].clear()
 
 
 def create_runner():
     app = web.Application()
     app.add_routes([
-        web.get('/',  http_get_handler),
-        web.post('/', http_post_handler),
-        web.get('/ws', websocket_handler),
+        web.get('/{id}',  http_get_handler),
+        web.post('/{id}', http_post_handler),
+        web.get('/ws/{id}', websocket_handler),
     ])
-    app['game'] = GS.get(id, GameServer())
+    app['games'] = {}
     app['websockets'] = {}
     app.on_shutdown.append(shutdown)
     return web.AppRunner(app)
