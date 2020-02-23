@@ -2,10 +2,10 @@ from common.coordinates import Coord, Move
 
 
 class Item(object):
-    def __init__(self, coordinates: Coord = None, gamer = None):
+    def __init__(self, coordinates: Coord = None, gamer=None):
         self.coordinates = coordinates
         self.gamer = gamer
-    
+
     def getClassName(self):
         return self.__class__.__name__
 
@@ -16,7 +16,8 @@ class Item(object):
         result = {
             'type': self.getClassName()
         }
-        if (self.gamer is not None): result['gamer'] = self.gamer
+        if (self.gamer is not None):
+            result['gamer'] = self.gamer
         if (self.coordinates):
             result['x'] = self.coordinates.x
             result['y'] = self.coordinates.y
@@ -27,6 +28,7 @@ class Item(object):
 
 class Character(Item):
     pass
+
 
 class ItemMove(object):
     def __init__(self, item: Item, move: Move, payload=None):
