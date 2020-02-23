@@ -9,7 +9,6 @@ class Ship(Item):
 class Pirate(Character):
     def __init__(self, coordinates: Coord = None, gamer=None):
         Character.__init__(self, coordinates, gamer)
-        self.step = 0
         self.locked = False
 
     def to_json(self):
@@ -21,15 +20,14 @@ class Pirate(Character):
         if (self.coordinates):
             result['x'] = self.coordinates.x
             result['y'] = self.coordinates.y
-        if (self.step is not None):
-            result['step'] = self.step
+            if (self.coordinates.z):
+                result['step'] = self.coordinates.z
         return result
 
 
 class Coin(Item):
     def __init__(self, coordinates: Coord = None, gamer=None):
         Item.__init__(self, coordinates, gamer)
-        self.step = 0
 
     def to_json(self):
         result = {
@@ -40,8 +38,8 @@ class Coin(Item):
         if (self.coordinates):
             result['x'] = self.coordinates.x
             result['y'] = self.coordinates.y
-        if (self.step is not None):
-            result['step'] = self.step
+            if (self.coordinates.z):
+                result['step'] = self.coordinates.z
         return result
 
 

@@ -1,5 +1,6 @@
 from common.coordinates import Coord, Move
 
+
 class Item(object):
     def __init__(self, coordinates: Coord = None, gamer = None):
         self.coordinates = coordinates
@@ -19,6 +20,8 @@ class Item(object):
         if (self.coordinates):
             result['x'] = self.coordinates.x
             result['y'] = self.coordinates.y
+            if (self.coordinates.z):
+                result['step'] = self.coordinates.z
         return result
 
 

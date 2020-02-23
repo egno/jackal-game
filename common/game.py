@@ -57,7 +57,8 @@ class Game(object):
             },
             'coordinates': {
                 'x': itemMove.move.destination.x,
-                'y': itemMove.move.destination.y
+                'y': itemMove.move.destination.y,
+                'step': itemMove.move.destination.z
             }
         }
         self.log += [logRecord]

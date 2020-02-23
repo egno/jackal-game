@@ -104,10 +104,9 @@ class Game(common.game.Game):
         item = self.items.get(itemId)
         if not item:
             return False
-        if not self.checkWhirl(item, destination):
-            return True
+        destination = self.checkWhirl(item, destination)
         common.game.Game.moveItem(self, itemId, destination)
-        self.openPlace(destination)
+        self.openPlace(Coord(destination.x, destination.y))
 
     def nextTile(self):
         if self.tileCounter >= len(self.tiles):
@@ -209,7 +208,7 @@ class Game(common.game.Game):
 
     def checkWhirl(self, item, destination: Coord):
         if not item.coordinates:
-            return True
+            return destination
         ship = self.items[
             [
                 i for i in self.items
@@ -217,14 +216,15 @@ class Game(common.game.Game):
                 and self.items[i].getClassName() == item.getClassName()
             ][0]
         ]
-        if ship.coordinates == destination:
-            item.step = 0
-            return True
-        place = self.field.places[item.coordinates]
-        if place.tile and place.tile.getClassName() == 'TileWhirl':
-            if item.step < (place.tile.steps - 1):
-                item.step += 1
-                return False
-            if item.step == (place.tile.steps - 1):
-                item.step = 0
-        return True
+        if ship.coordinates == Coord(destination.x, destination.y):
+            return destination
+        currentPlace = self.field.places[Coord(item.coordinates.x, item.coordinates.y)]
+        destinationPlace = self.field.places[Coord(destination.x, destination.y)]
+        if currentPlace.tile and currentPlace.tile.getClassName() == 'TileWhirl':
+            if (item.coordinates.z):
+                return Coord(item.coordinates.x, item.coordinates.y, item.coordinates.z - 1)
+            else:
+                return destination
+        elif destinationPlace.tile and destinationPlace.tile.getClassName() == 'TileWhirl':
+            return Coord(destination.x, destination.y, destinationPlace.tile.steps - 1)
+        return destination
